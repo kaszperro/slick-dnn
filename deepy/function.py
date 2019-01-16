@@ -71,6 +71,10 @@ class MatMul(Function):
 
 
 class ReLU(Function):
+    @staticmethod
+    def forward(ctx, tensor: np.array):
+        ctx.t = tensor
+        return np.clip(tensor, a_min=0, a_max=None)
 
     @staticmethod
     def backward(ctx, grad: np.array):
@@ -79,8 +83,3 @@ class ReLU(Function):
         new_grad = deepcopy(grad)
         new_grad[ctx.t < 0] = 0
         return new_grad
-
-
-def forward(ctx, tensor: np.array):
-    ctx.t = tensor
-    return np.clip(tensor, a_min=0, a_max=None)
