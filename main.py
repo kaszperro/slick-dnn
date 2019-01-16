@@ -1,14 +1,13 @@
 import deepy as dp
+from deepy.variable import Variable
 import numpy as np
 
 if __name__ == '__main__':
-    a = dp.variable.ones((2, 2))
-    b = dp.variable.ones((2, 3))
-    c = dp.variable.ones((2, 3))
-
-    b.tensor.holder = np.array([[1, 2, 3], [4, 5, 6]])
+    a = Variable([[1, 2], [3, 4]])
+    b = Variable(np.ones((2, 2)))
+    c = Variable(np.ones((2, 2)))
     d = a @ b + c
-    d.backward(dp.tensor.ones((2, 3)))
-    print(a.get_grad())
-    print(b.get_grad())
-    print(c.get_grad())
+    d.backward(np.ones((2, 2)))
+
+    print(a.grad)
+    print(b.grad)
