@@ -18,8 +18,13 @@ class Variable:
     def __setitem__(self, key, value):
         self.data.__setitem__(key, value)
 
-    def backward(self, grad: np.array):
-        self.grad += grad
+    def backward(self, grad: np.array = None):
+        if grad is not None:
+            if len(grad.shape) - 1 == len(self.grad.shape) or grad.shape[0] != self.grad.shape[0]:
+
+                self.grad += np.sum(grad, 0)
+            else:
+                self.grad += grad
 
         if len(self.backward_variables) > 1:
             accumulated = self.backward_function(grad)
@@ -29,16 +34,19 @@ class Variable:
             accumulated = self.backward_function(grad)
             self.backward_variables[0].backward(accumulated)
 
+    def __str__(self):
+        return "[Variable] " + self.data.__str__()
+
     # mathematical operations
 
     def __add__(self, other):
-        from deepy.function import Add
+        from deepy.autograd.mathematical import Add
         return Add()(self, other)
 
     def __sub__(self, other):
-        from deepy.function import Sub
+        from deepy.autograd.mathematical import Sub
         return Sub()(self, other)
 
     def __matmul__(self, other):
-        from deepy.function import MatMul
+        from deepy.autograd.mathematical import MatMul
         return MatMul()(self, other)
