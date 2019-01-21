@@ -10,7 +10,7 @@ from deepy.variable import Variable
 
 batch_size = 64
 iterations = 10
-learning_rate = 0.005
+learning_rate = 0.003
 
 my_model = Sequential(
     Linear(28 * 28, 300),
@@ -65,6 +65,6 @@ for it in range(iterations):
         if i_b % 50 == 0:
             acc = test_model_acc()
             print("model accuracy: {}".format(acc))
-            if acc > 0.97:
+            if acc > 0.96:
                 finished = True
                 break
