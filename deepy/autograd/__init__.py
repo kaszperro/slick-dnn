@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -25,10 +25,12 @@ class Autograd(ABC):
         return output_variable
 
     @staticmethod
+    @abstractmethod
     def forward(ctx, *tensors_list) -> np.array:
         raise NotImplementedError
 
     @staticmethod
+    @abstractmethod
     def backward(ctx, grad: np.array = None):
         raise NotImplementedError
 
