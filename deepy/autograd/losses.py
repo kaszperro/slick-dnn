@@ -8,13 +8,10 @@ class MSELoss(Autograd):
     def forward(ctx, truth, predictions) -> np.array:
         if truth.shape != predictions.shape:
             raise ValueError("Wrong shapes")
-        if len(truth.shape) == 1:
-            ax = 0
-        else:
-            ax = 1
+
         ctx.truth = truth
         ctx.predictions = predictions
-        return ((truth - predictions) ** 2).mean(axis=ax)
+        return ((truth - predictions) ** 2).mean()
 
     @staticmethod
     def backward(ctx, grad: np.array = None):

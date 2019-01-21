@@ -66,7 +66,8 @@ class MNISTTrainDataSet(MNISTDataSet):
                  training_images_path: str = None,
                  training_labels_path=None,
                  flatten_input=True,
-                 one_hot_output=True):
+                 one_hot_output=True,
+                 input_normalization=None):
 
         if training_images_path is None:
             training_images_path = './training-images.idx3-ubyte'
@@ -82,8 +83,15 @@ class MNISTTrainDataSet(MNISTDataSet):
                                                                 self.flatten_input,
                                                                 self.one_hot_output)
 
+        self.input_normalization = input_normalization
+
     def __getitem__(self, idx):
-        return self.loaded_data[idx], self.loaded_labels[idx]
+        data_in = self.loaded_data[idx]/255
+        data_out = self.loaded_labels[idx]
+        if self.input_normalization is not None:
+            data_in = np.where(data_in != 0, (data_in - self.input_normalization[0]) / self.input_normalization[1], 0)
+
+        return data_in, data_out
 
     def __len__(self):
         return len(self.loaded_data)
@@ -97,7 +105,8 @@ class MNISTTestDataSet(MNISTDataSet):
                  testing_images_path: str = None,
                  testing_labels_path=None,
                  flatten_input=True,
-                 one_hot_output=True):
+                 one_hot_output=True,
+                 input_normalization=None):
 
         if testing_images_path is None:
             testing_images_path = './testing-images.idx3-ubyte'
@@ -113,8 +122,14 @@ class MNISTTestDataSet(MNISTDataSet):
                                                                 self.flatten_input,
                                                                 self.one_hot_output)
 
+        self.input_normalization = input_normalization
+
     def __getitem__(self, idx):
-        return self.loaded_data[idx], self.loaded_labels[idx]
+        data_in = self.loaded_data[idx]/255
+        data_out = self.loaded_labels[idx]
+        if self.input_normalization is not None:
+            data_in = np.where(data_in != 0, (data_in - self.input_normalization[0]) / self.input_normalization[1], 0)
+        return data_in, data_out
 
     def __len__(self):
         return len(self.loaded_data)

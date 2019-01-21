@@ -1,4 +1,5 @@
 .idea/*
+*.idx3-ubyte
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
