@@ -88,7 +88,9 @@ class Conv2d(Module):
 
         self.biases = variable.zeros(output_channels)
 
-       # self.out_img_w  =
+        self.register_variables(self.weights, self.biases)
+
+    # self.out_img_w  =
 
     # https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/making_faster.html
     def forward(self, input_variable: Variable) -> Variable:

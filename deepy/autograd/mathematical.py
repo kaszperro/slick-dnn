@@ -62,7 +62,7 @@ class Reshape(Autograd):
 
     def forward(self, ctx, tensor: np.array):
         ctx.save_for_back(tensor.shape)
-        return np.reshape(self.new_shape)
+        return np.reshape(tensor, self.new_shape)
 
     def backward(self, ctx, grad: np.array):
         old_shape = ctx.data_for_back
