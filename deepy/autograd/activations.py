@@ -5,6 +5,17 @@ import numpy as np
 from deepy.autograd import Autograd
 
 
+class ArcTan(Autograd):
+    @staticmethod
+    def forward(ctx, tensor: np.array):
+        ctx.t = tensor
+        return np.arctan(tensor)
+
+    @staticmethod
+    def backward(ctx, grad: np.array):
+        return grad / (ctx.t * ctx.t + 1)
+
+
 class ReLU(Autograd):
     @staticmethod
     def forward(ctx, tensor: np.array):
@@ -41,3 +52,36 @@ class Softmax(Autograd):
     @staticmethod
     def backward(ctx, grad: np.array = None):
         return grad * ctx.res * (1 - ctx.res)
+
+
+class Softplus(Autograd):
+    @staticmethod
+    def forward(ctx, tensor: np.array) -> np.array:
+        ctx.denom = 1 + np.exp(-tensor)
+        return np.log(1 + np.exp(tensor))
+
+    @staticmethod
+    def backward(ctx, grad: np.array = None):
+        return grad / ctx.denom
+
+
+class Softsign(Autograd):
+    @staticmethod
+    def forward(ctx, tensor: np.array) -> np.array:
+        ctx.denom = 1 + np.abs(tensor)
+        return tensor / ctx.denom
+
+    @staticmethod
+    def backward(ctx, grad: np.array = None):
+        return grad / (ctx.denom * ctx.denom)
+
+
+class Tanh(Autograd):
+    @staticmethod
+    def forward(ctx, tensor: np.array) -> np.array:
+        ctx.tanh = np.tanh(tensor)
+        return ctx.tanh
+
+    @staticmethod
+    def backward(ctx, grad: np.array = None):
+        return (1 - ctx.tanh * ctx.tanh) * grad
