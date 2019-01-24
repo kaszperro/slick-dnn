@@ -5,14 +5,13 @@ from deepy.autograd import Autograd
 
 class ArcTan(Autograd):
     """ Applies the arctan function element-wise. """
-    @staticmethod
-    def forward(ctx, tensor: np.array):
-        ctx.t = tensor
+    def forward(self, ctx: Autograd.Context, tensor: np.array):
+        ctx.save_for_back(tensor)
         return np.arctan(tensor)
 
-    @staticmethod
-    def backward(ctx, grad: np.array):
-        return grad / (ctx.t * ctx.t + 1)
+    def backward(self, ctx: Autograd.Context, grad: np.array):
+        tensor = ctx.data_for_back
+        return grad / (tensor * tensor + 1)
 
 
 class ReLU(Autograd):
@@ -54,14 +53,13 @@ class Softplus(Autograd):
     Softplus(x) = ln(1 + e^x)
     Softplus'(x) = 1 / (1 + e^-x)
     """
-    @staticmethod
-    def forward(ctx, tensor: np.array) -> np.array:
-        ctx.denom = 1 + np.exp(-tensor)
+    def forward(self, ctx: Autograd.Context, tensor: np.array) -> np.array:
+        ctx.save_for_back(1 + np.exp(-tensor))
         return np.log(1 + np.exp(tensor))
 
-    @staticmethod
-    def backward(ctx, grad: np.array = None):
-        return grad / ctx.denom
+    def backward(self, ctx: Autograd.Context, grad: np.array = None):
+        denominator = ctx.data_for_back
+        return grad / denominator
 
 
 class Softsign(Autograd):
@@ -71,23 +69,23 @@ class Softsign(Autograd):
     Softsign(x) = 1 / (1 + |x|)
     Softsign'(x) = 1 / (1 + |x|)^2
     """
-    @staticmethod
-    def forward(ctx, tensor: np.array) -> np.array:
-        ctx.denom = 1 + np.abs(tensor)
-        return tensor / ctx.denom
+    def forward(self, ctx: Autograd.Context, tensor: np.array) -> np.array:
+        denominator = 1 + np.abs(tensor)
+        ctx.save_for_back(denominator)
+        return tensor / denominator
 
-    @staticmethod
-    def backward(ctx, grad: np.array = None):
-        return grad / (ctx.denom * ctx.denom)
+    def backward(self, ctx: Autograd.Context, grad: np.array = None):
+        denominator = ctx.data_for_back
+        return grad / (denominator * denominator)
 
 
 class Tanh(Autograd):
     """ Applies the tanh function element-wise. """
-    @staticmethod
-    def forward(ctx, tensor: np.array) -> np.array:
-        ctx.tanh = np.tanh(tensor)
-        return ctx.tanh
+    def forward(self, ctx: Autograd.Context, tensor: np.array) -> np.array:
+        tanh = np.tanh(tensor)
+        ctx.save_for_back(tanh)
+        return tanh
 
-    @staticmethod
-    def backward(ctx, grad: np.array = None):
-        return (1 - ctx.tanh * ctx.tanh) * grad
+    def backward(self, ctx: Autograd.Context, grad: np.array = None):
+        tanh = ctx.data_for_back
+        return (1 - tanh * tanh) * grad
