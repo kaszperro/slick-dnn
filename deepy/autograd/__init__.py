@@ -5,33 +5,51 @@ import numpy as np
 from deepy.variable import Variable
 
 
-class Context:
-    pass
-
-
 class Autograd(ABC):
+    class Context:
+        """
+        This class is for storing information for backpropagation.
+        Create this class instead of using self to allow constructions:
 
-    @classmethod
-    def apply(cls, *variables_list):
-        new_context = Context()
+        relu = ReLU()
+
+        b = relu(a)
+        c = relu(b)
+
+        That means, that you can use one instance of Autograd class
+        to all of your operations. Without it, the above example would be:
+
+        relu1 = ReLU()
+        relu2 = ReLU()
+
+        b =  relu1(a)
+        c = relu2(b)
+        """
+
+        def __init__(self):
+            self.data_for_back = None
+
+        def save_for_back(self, *tensors):
+            if len(tensors) == 1:
+                tensors = tensors[0]
+            self.data_for_back = tensors
+
+    def apply(self, *variables_list):
+        ctx = Autograd.Context()
 
         input_tensors = [v.data for v in variables_list]
-        forward_tensor = cls.forward(new_context, *input_tensors)
+        forward_tensor = self.forward(ctx, *input_tensors)
 
         output_variable = Variable(forward_tensor)
-        output_variable.backward_function = lambda x: cls.backward(new_context, x)
+        output_variable.backward_function = lambda x: self.backward(ctx, x)
         output_variable.backward_variables = [v for v in variables_list]
 
         return output_variable
 
-    @staticmethod
-    @abstractmethod
-    def forward(ctx, *tensors_list) -> np.array:
+    def forward(self, ctx: Context, *tensors_list):
         raise NotImplementedError
 
-    @staticmethod
-    @abstractmethod
-    def backward(ctx, grad: np.array = None):
+    def backward(self, ctx: Context, grad: np.array = None):
         raise NotImplementedError
 
     def __call__(self, *variables_list):

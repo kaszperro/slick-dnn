@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from deepy import variable
 from deepy.variable import Variable
 
 
@@ -54,9 +55,41 @@ class Linear(Module):
         self.num_output = num_output
 
         self.weights = Variable(np.random.normal(0, 0.05, (self.num_input, self.num_output)))
-        self.biases = Variable(np.zeros(self.num_output, dtype=np.float32))
+        self.biases = variable.zeros(self.num_output, np.float32)
 
         self.register_variables(self.weights, self.biases)
 
     def forward(self, in_var):
         return (in_var @ self.weights) + self.biases
+
+
+class Conv2d(Module):
+    def __init__(self, input_channels, output_channels, kernel_size, stride=1, padding=0):
+        super().__init__()
+
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+
+        if isinstance(stride, int):
+            stride = (stride, stride)
+
+        self.input_channels = input_channels
+        self.output_channels = output_channels
+        self.kernel_size = kernel_size
+        self.padding = padding
+        self.stride = stride
+
+        self.weights = Variable(
+            np.random.normal(0, 0.05, (self.input_channels,
+                                       self.output_channels,
+                                       self.kernel_size[0],
+                                       self.kernel_size[1]
+                                       )))
+
+        self.biases = variable.zeros(output_channels)
+
+       # self.out_img_w  =
+
+    # https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/making_faster.html
+    def forward(self, input_variable: Variable) -> Variable:
+        pass

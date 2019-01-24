@@ -6,6 +6,7 @@ class Variable:
         self.data = np.array(from_numpy)
 
         self.has_grad = has_grad
+        self.grad = None
         if has_grad:
             self.grad = np.zeros_like(self.data, dtype=np.float32)
 
@@ -21,23 +22,27 @@ class Variable:
     def backward(self, grad: np.array = None):
         if grad is not None:
             if len(grad.shape) - 1 == len(self.grad.shape) or grad.shape[0] != self.grad.shape[0]:
-
                 self.grad += np.sum(grad, 0)
             else:
                 self.grad += grad
 
-        if len(self.backward_variables) > 1:
+        if self.backward_function is not None:
             accumulated = self.backward_function(grad)
             for i, bv in enumerate(self.backward_variables):
-                bv.backward(accumulated[i])
-        elif len(self.backward_variables) == 1:
-            accumulated = self.backward_function(grad)
-            self.backward_variables[0].backward(accumulated)
+                bv.backward(
+                    accumulated[i]
+                    if len(self.backward_variables) > 1
+                    else accumulated
+                )
 
     def __str__(self):
         return "[Variable] " + self.data.__str__()
 
     # mathematical operations
+
+    def reshape(self, *new_shape):
+        from deepy.autograd.mathematical import Reshape
+        return Reshape(new_shape)(self)
 
     def __add__(self, other):
         from deepy.autograd.mathematical import Add
@@ -50,3 +55,15 @@ class Variable:
     def __matmul__(self, other):
         from deepy.autograd.mathematical import MatMul
         return MatMul()(self, other)
+
+    def __mul__(self, other):
+        from deepy.autograd.mathematical import Mul
+        return Mul()(self, other)
+
+
+def zeros(shape, dtype=np.float32) -> Variable:
+    return Variable(np.zeros(shape, dtype=dtype))
+
+
+def ones(shape, dtype=np.float32) -> Variable:
+    return Variable(np.ones(shape, dtype=dtype))
