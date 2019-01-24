@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 from deepy.autograd.activations import Softmax, ReLU
@@ -45,19 +44,6 @@ def test_model_acc():
         correct += np.sum(np.argmax(test_output, axis=1) == np.argmax(test_batch_out, axis=1))
 
     my_acc = correct / len(test_dataset)
-
-    if my_acc > 0.9:
-        single_iter.shuffle()
-        for i in range(10):
-            my_picture, label = single_iter[i]
-            reshaped_picture = np.reshape(my_picture, (28, 28))
-
-            model_digit = my_model(Variable(my_picture)).data
-
-            plt.imshow(reshaped_picture)
-            plt.savefig('model:{}, true:{}.png'.format(np.argmax(model_digit), np.argmax(label)))
-            plt.close()
-
     return my_acc
 
 
@@ -79,7 +65,7 @@ for it in range(iterations):
 
         optimizer.step()
 
-    # if i_b % 50 == 0:
+
     acc = test_model_acc()
     print("model accuracy: {}".format(acc))
     if acc > 0.97:

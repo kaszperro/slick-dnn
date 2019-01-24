@@ -7,7 +7,6 @@ verify_ssl = true
 
 [packages]
 numpy = "*"
-matplotlib = "*"
 
 [requires]
 python_version = "3.7"
