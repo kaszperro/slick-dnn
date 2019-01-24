@@ -6,6 +6,7 @@ from deepy.autograd import Autograd
 
 
 class ArcTan(Autograd):
+    """ Applies the arctan function element-wise. """
     @staticmethod
     def forward(ctx, tensor: np.array):
         ctx.t = tensor
@@ -55,6 +56,11 @@ class Softmax(Autograd):
 
 
 class Softplus(Autograd):
+    """ Applies the softplus function element-wise:
+
+    Softplus(x) = ln(1 + e^x)
+    Softplus'(x) = 1 / (1 + e^-x)
+    """
     @staticmethod
     def forward(ctx, tensor: np.array) -> np.array:
         ctx.denom = 1 + np.exp(-tensor)
@@ -66,6 +72,12 @@ class Softplus(Autograd):
 
 
 class Softsign(Autograd):
+    """ Applies the softsign function element-wise:
+
+
+    Softsign(x) = 1 / (1 + |x|)
+    Softsign'(x) = 1 / (1 + |x|)^2
+    """
     @staticmethod
     def forward(ctx, tensor: np.array) -> np.array:
         ctx.denom = 1 + np.abs(tensor)
@@ -77,6 +89,7 @@ class Softsign(Autograd):
 
 
 class Tanh(Autograd):
+    """ Applies the tanh function element-wise. """
     @staticmethod
     def forward(ctx, tensor: np.array) -> np.array:
         ctx.tanh = np.tanh(tensor)
