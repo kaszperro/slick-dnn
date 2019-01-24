@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 
 class Optimizer(ABC):
     def __init__(self, variables_list: list):
@@ -15,10 +17,17 @@ class Optimizer(ABC):
 
 
 class SGD(Optimizer):
-    def __init__(self, variables_list: list, learning_rate=0.01):
+    def __init__(self, variables_list: list, learning_rate=0.01,
+                 learning_rate_decay=1., momentum=0.):
         super().__init__(variables_list)
         self.lr = learning_rate
+        self.lrd = learning_rate_decay
+        self.mu = momentum
+        self.vel = [np.zeros_like(v) for v in self.variables_list]
 
     def step(self):
-        for v in self.variables_list:
-            v.data -= self.lr * v.grad
+        for i, v in enumerate(self.variables_list):
+            self.vel[i] = self.mu * self.vel[i] - self.lr * v.grad
+            v.data += self.vel[i]
+
+        self.lr *= self.lrd
