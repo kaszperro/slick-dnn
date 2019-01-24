@@ -54,16 +54,3 @@ class Mul(Autograd):
     def backward(self, ctx, grad: np.array):
         t1, t2 = ctx.data_for_back
         return grad * t2, grad * t1
-
-
-class Reshape(Autograd):
-    def __init__(self, *new_shape):
-        self.new_shape = new_shape
-
-    def forward(self, ctx, tensor: np.array):
-        ctx.save_for_back(tensor.shape)
-        return np.reshape(tensor, self.new_shape)
-
-    def backward(self, ctx, grad: np.array):
-        old_shape = ctx.data_for_back
-        return np.reshape(grad, old_shape)

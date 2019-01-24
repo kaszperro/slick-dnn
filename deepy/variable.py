@@ -13,12 +13,6 @@ class Variable:
         self.backward_function = None
         self.backward_variables = []
 
-    def __getitem__(self, item):
-        return self.data.__getitem__(item)
-
-    def __setitem__(self, key, value):
-        self.data.__setitem__(key, value)
-
     def backward(self, grad: np.array = None):
         if grad is not None:
             if len(grad.shape) - 1 == len(self.grad.shape) or grad.shape[0] != self.grad.shape[0]:
@@ -38,10 +32,17 @@ class Variable:
     def __str__(self):
         return "[Variable] " + self.data.__str__()
 
+    def __getitem__(self, item):
+        from deepy.autograd.tensor_modifications import GetItem
+        return GetItem(item)(self)
+
+    def __setitem__(self, key, value):
+        self.data.__setitem__(key, value)
+
     # mathematical operations
 
     def reshape(self, *new_shape):
-        from deepy.autograd.mathematical import Reshape
+        from deepy.autograd.tensor_modifications import Reshape
         return Reshape(new_shape)(self)
 
     def __add__(self, other):

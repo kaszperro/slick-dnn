@@ -65,7 +65,6 @@ for it in range(iterations):
 
         optimizer.step()
 
-
     acc = test_model_acc()
     print("model accuracy: {}".format(acc))
     if acc > 0.97:
