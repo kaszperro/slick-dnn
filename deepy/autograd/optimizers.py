@@ -6,6 +6,7 @@ import numpy as np
 class Optimizer(ABC):
     def __init__(self, variables_list: list):
         self.variables_list = variables_list
+        self.state = {}
 
     def zero_grad(self):
         for v in self.variables_list:
@@ -35,8 +36,6 @@ class Adam(Optimizer):
         self.beta1 = beta1
         self.beta2 = beta2
         self.eps = epsilon
-
-        self.state = {}
 
     @staticmethod
     def initialize_state(state, variable):
