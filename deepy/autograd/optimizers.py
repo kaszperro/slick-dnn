@@ -18,14 +18,35 @@ class Optimizer(ABC):
 
 
 class SGD(Optimizer):
-    def __init__(self, variables_list: list, learning_rate=0.01):
+    def __init__(self, variables_list: list, learning_rate=0.01, momentum=0., decay=0.):
         super().__init__(variables_list)
         self.lr = learning_rate
+        self.decay = decay
+        self.mu = momentum
+
+    @staticmethod
+    def initialize_state(state, variable):
+        # Velocity for momentum.
+        state['v'] = np.zeros_like(variable.grad)
 
     def step(self):
         for variable in self.variables_list:
-            if variable.grad is not None:
-                variable.data -= self.lr * variable.grad
+            if variable.grad is None:
+                continue
+
+            if variable not in self.state:
+                self.state[variable] = {}
+
+            state = self.state[variable]
+
+            if len(state) == 0:
+                self.initialize_state(state, variable)
+
+            state['v'] = self.mu * state['v'] - self.lr * variable.grad
+            variable.data += state['v']
+
+        # Linear decay.
+        self.lr = self.lr / (1 + self.decay)
 
 
 class Adam(Optimizer):
