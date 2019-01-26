@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from deepy.variable import Variable
+from deepy import variable
+
 
 
 class Autograd(ABC):
@@ -40,15 +41,17 @@ class Autograd(ABC):
         input_tensors = [v.data for v in variables_list]
         forward_tensor = self.forward(ctx, *input_tensors)
 
-        output_variable = Variable(forward_tensor)
+        output_variable = variable.Variable(forward_tensor)
         output_variable.backward_function = lambda x: self.backward(ctx, x)
         output_variable.backward_variables = [v for v in variables_list]
 
         return output_variable
 
+    @abstractmethod
     def forward(self, ctx: Context, *tensors_list):
         raise NotImplementedError
 
+    @abstractmethod
     def backward(self, ctx: Context, grad: np.array = None):
         raise NotImplementedError
 

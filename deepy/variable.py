@@ -1,5 +1,12 @@
 import numpy as np
 
+from deepy.autograd.mathematical import Add
+from deepy.autograd.mathematical import MatMul
+from deepy.autograd.mathematical import Mul
+from deepy.autograd.mathematical import Sub
+from deepy.autograd.tensor_modifications import Reshape
+from deepy.autograd.tensor_modifications import SwapAxes
+
 
 class Variable:
     def __init__(self, from_numpy: np.array, has_grad=True):
@@ -12,6 +19,8 @@ class Variable:
 
         self.backward_function = None
         self.backward_variables = []
+
+        self.shape = self.data.shape
 
     def backward(self, grad: np.array = None):
         if grad is not None:
@@ -30,7 +39,7 @@ class Variable:
                 )
 
     def __str__(self):
-        return "[Variable] " + self.data.__str__()
+        return "<Variable>\n" + self.data.__str__()
 
     def __getitem__(self, item):
         from deepy.autograd.tensor_modifications import GetItem
@@ -42,23 +51,21 @@ class Variable:
     # mathematical operations
 
     def reshape(self, *new_shape):
-        from deepy.autograd.tensor_modifications import Reshape
-        return Reshape(new_shape)(self)
+        return Reshape(*new_shape)(self)
+
+    def swap_axes(self, axis1, axis2):
+        return SwapAxes(axis1, axis2)(self)
 
     def __add__(self, other):
-        from deepy.autograd.mathematical import Add
         return Add()(self, other)
 
     def __sub__(self, other):
-        from deepy.autograd.mathematical import Sub
         return Sub()(self, other)
 
     def __matmul__(self, other):
-        from deepy.autograd.mathematical import MatMul
         return MatMul()(self, other)
 
     def __mul__(self, other):
-        from deepy.autograd.mathematical import Mul
         return Mul()(self, other)
 
 

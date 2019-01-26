@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from deepy import variable
+from deepy.autograd.tensor_modifications import Img2Col
 from deepy.variable import Variable
 
 
@@ -64,7 +65,7 @@ class Linear(Module):
 
 
 class Conv2d(Module):
-    def __init__(self, input_channels, output_channels, kernel_size, stride=1, padding=0):
+    def __init__(self, input_channels, output_channels, kernel_size, stride=1, padding=0, add_bias=True):
         super().__init__()
 
         if isinstance(kernel_size, int):
@@ -73,6 +74,9 @@ class Conv2d(Module):
         if isinstance(stride, int):
             stride = (stride, stride)
 
+        if isinstance(padding, int):
+            padding = (padding, padding)
+
         self.input_channels = input_channels
         self.output_channels = output_channels
         self.kernel_size = kernel_size
@@ -80,18 +84,53 @@ class Conv2d(Module):
         self.stride = stride
 
         self.weights = Variable(
-            np.random.normal(0, 0.05, (self.input_channels,
-                                       self.output_channels,
+            np.random.normal(0, 0.05, (self.output_channels,
+                                       self.input_channels,
                                        self.kernel_size[0],
                                        self.kernel_size[1]
                                        )))
+        self.add_bias = add_bias
+        if self.add_bias:
+            self.biases = variable.zeros(output_channels)
+            self.register_variables(self.weights, self.biases)
+        else:
+            self.register_variables(self.weights)
 
-        self.biases = variable.zeros(output_channels)
-
-        self.register_variables(self.weights, self.biases)
-
-    # self.out_img_w  =
+        self.img2col = Img2Col(self.kernel_size, self.stride)
 
     # https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/making_faster.html
     def forward(self, input_variable: Variable) -> Variable:
-        pass
+        """
+        Performs 2D convolution on input_variable.
+        Args:
+            input_variable (np.array): input image allowed shapes:
+                                [N, C, H, W], [C, H, W]
+                                N - batches,
+                                C - channels,
+                                H - height,
+                                W - width
+        """
+
+        img2col = self.img2col(input_variable)
+        reshaped_weights = self.weights.reshape(self.weights.shape[0], -1)
+
+        unformed_res = reshaped_weights @ img2col
+
+        img_w = input_variable.shape[-1]
+        img_h = input_variable.shape[-2]
+        # new image width
+        new_w = (img_w - self.kernel_size[0]) // self.stride[0] + 1
+
+        # new image height
+        new_h = (img_h - self.kernel_size[1]) // self.stride[1] + 1
+
+        batch_input = len(input_variable.shape) == 4
+        if batch_input:
+            output_shape = (input_variable.shape[0], self.output_channels, new_h, new_w)
+        else:
+            output_shape = (self.output_channels, new_h, new_w)
+
+        if self.add_bias:
+            unformed_res = (unformed_res.swap_axes(-1, -2) + self.biases).swap_axes(-1, -2)
+
+        return unformed_res.reshape(*output_shape)
