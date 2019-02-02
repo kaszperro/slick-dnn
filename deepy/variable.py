@@ -24,10 +24,7 @@ class Variable:
 
     def backward(self, grad: np.array = None):
         if grad is not None:
-            if len(grad.shape) - 1 == len(self.grad.shape) or grad.shape[0] != self.grad.shape[0]:
-                self.grad += np.sum(grad, 0)
-            else:
-                self.grad += grad
+            self.grad = grad + self.grad
 
         if self.backward_function is not None:
             accumulated = self.backward_function(grad)

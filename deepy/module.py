@@ -84,11 +84,14 @@ class Conv2d(Module):
         self.stride = stride
 
         self.weights = Variable(
-            np.random.normal(0, 0.05, (self.output_channels,
-                                       self.input_channels,
-                                       self.kernel_size[0],
-                                       self.kernel_size[1]
-                                       )))
+            np.random.normal(0, 0.05, (
+                self.output_channels,
+                self.input_channels,
+                self.kernel_size[0],
+                self.kernel_size[1]
+            ))
+        )
+
         self.add_bias = add_bias
         if self.add_bias:
             self.biases = variable.zeros(output_channels)
@@ -112,9 +115,7 @@ class Conv2d(Module):
         """
 
         img2col = self.img2col(input_variable)
-        reshaped_weights = self.weights.reshape(self.weights.shape[0], -1)
-
-        unformed_res = reshaped_weights @ img2col
+        unformed_res = self.weights.reshape(self.weights.shape[0], -1) @ img2col
 
         img_w = input_variable.shape[-1]
         img_h = input_variable.shape[-2]
@@ -125,6 +126,7 @@ class Conv2d(Module):
         new_h = (img_h - self.kernel_size[1]) // self.stride[1] + 1
 
         batch_input = len(input_variable.shape) == 4
+
         if batch_input:
             output_shape = (input_variable.shape[0], self.output_channels, new_h, new_w)
         else:

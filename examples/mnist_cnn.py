@@ -1,13 +1,8 @@
 import numpy as np
 
+from deepy.autograd.tensor_modifications import MaxPool2d
 from deepy.module import Conv2d
 from deepy.variable import Variable
-
-shape1 = np.ones((2, 4, 100))
-
-b = np.ones(100)
-
-np.add(b, shape1)
 
 input_image = np.array([
     [
@@ -38,7 +33,17 @@ input_image = np.array([
 
 input_var = Variable(input_image)
 
-my_conv = Conv2d(2, 100, (1, 1))
+my_conv = Conv2d(2, 1, (1, 1))
 
 after_conf = my_conv(input_var)
-print(after_conf.shape)
+
+after_conf.backward(np.ones_like(after_conf.data))
+
+max_pool = MaxPool2d(2, 1)
+
+max_out = max_pool(after_conf)
+
+max_out.backward(np.ones_like(max_out.data))
+
+
+print(my_conv.weights.grad)
