@@ -1,6 +1,6 @@
 import numpy as np
 
-from deepy.autograd.activations import Softmax, ReLU
+from deepy.autograd.activations import Softmax, ReLU, Tanh
 from deepy.autograd.losses import CrossEntropyLoss
 from deepy.autograd.optimizers import Adam
 from deepy.autograd.tensor_modifications import MaxPool2d, Flatten
@@ -14,13 +14,14 @@ iterations = 10
 learning_rate = 0.0001
 
 my_model = Sequential(
-    Conv2d(input_channels=1, output_channels=32, kernel_size=5),
-    ReLU(),
+    Conv2d(input_channels=1, output_channels=10, kernel_size=5),
     MaxPool2d(kernel_size=2, stride=2),
-    Conv2d(input_channels=32, output_channels=64, kernel_size=5),
+    Tanh(),
+    Conv2d(input_channels=10, output_channels=10, kernel_size=5),
     MaxPool2d(kernel_size=2, stride=2),
+    Tanh(),
     Flatten(),
-    Linear(1024, 10),
+    Linear(160, 10),
     Softmax()
 )
 
