@@ -14,26 +14,14 @@ iterations = 10
 learning_rate = 0.0001
 
 my_model = Sequential(
-    Conv2d(1, 16, 2),
+    Conv2d(1, 12, 4),
     MaxPool2d(2),
-    Conv2d(16, 4, 2),
+    Conv2d(12, 4, 4),
     MaxPool2d(2),
     Flatten(),
-    Linear(2304, 10),
+    Linear(1600, 10),
     Softmax()
 )
-
-"""
-model_input = Variable(np.ones((2, 1, 5, 5)))
-model_out = my_model(model_input)
-#print(model_out.shape)
-#print(model_out)
-
-model_out.backward(np.ones_like(model_out.data))
-
-awefjawe
-"""
-
 
 train_dataset = MNISTTrainDataSet(flatten_input=False, one_hot_output=True, input_normalization=(0.1307, 0.3081))
 test_dataset = MNISTTestDataSet(flatten_input=False, one_hot_output=True, input_normalization=(0.1307, 0.3081))
