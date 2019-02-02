@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Tuple, Union
 
 import numpy as np
@@ -15,7 +16,22 @@ class Reshape(Autograd):
 
     def backward(self, ctx: Context, grad: np.array):
         old_shape = ctx.data_for_back
-        return np.reshape(grad, (grad.shape[0], *old_shape[1:]))
+
+        # bach grad
+        if len(self.new_shape) + 1 == len(grad.shape):
+            old_shape = (grad.shape[0], *old_shape)
+
+        return np.reshape(grad, old_shape)
+
+
+class Flatten(Autograd):
+    def forward(self, ctx: Context, tensor):
+        ctx.save_for_back(tensor.shape)
+        return np.reshape(tensor, (tensor.shape[0], -1))
+
+    def backward(self, ctx: Context, grad: np.array = None):
+        old_shape = ctx.data_for_back
+        return np.reshape(grad, old_shape)
 
 
 class SwapAxes(Autograd):
@@ -85,7 +101,7 @@ class Img2Col(Autograd):
         return ret_image
 
     @staticmethod
-    def img_2_col_backwards(kernel_size, stride, old_shape, grad, mask=None):
+    def img_2_col_backwards(kernel_size, stride, old_shape, grad):
         channels = old_shape[-3]
 
         img_w = old_shape[-1]
@@ -101,11 +117,6 @@ class Img2Col(Autograd):
                 col,
                 (-1, channels, kernel_size[1], kernel_size[0])
             )
-
-            if mask is not None:
-                col_mask = mask[..., :, i]
-                col_mask = np.reshape(col_mask, (-1, channels, kernel_size[1], kernel_size[0]))
-                col *= col_mask
 
             h_start = (i // old_w) * stride[1]
             w_start = (i % old_w) * stride[0]
@@ -154,12 +165,11 @@ class Img2Col(Autograd):
             self.kernel_size,
             self.stride,
             old_shape,
-            grad,
-            None
+            grad
         )
 
 
-class MaxPool2d(Autograd):
+class BasePool(Autograd, ABC):
     def __init__(self, kernel_size, stride=1):
 
         if isinstance(kernel_size, int):
@@ -171,6 +181,16 @@ class MaxPool2d(Autograd):
         self.kernel_size = kernel_size
         self.stride = stride
 
+    @staticmethod
+    def _fill_coll(to_fill, new_shape):
+        repeats = new_shape[-2]
+        my_ret = np.repeat(to_fill, repeats, -2)
+        my_ret = np.reshape(my_ret, new_shape)
+
+        return my_ret
+
+
+class MaxPool2d(BasePool):
     def forward(self, ctx: Context, image):
         """
         Performs 2d max pool over input tensor
@@ -207,24 +227,81 @@ class MaxPool2d(Autograd):
 
         maxed = np.max(img_out, -2)
         ctx.save_for_back(img_out, image.shape, maxed.shape)
-
         return np.reshape(maxed, (-1, channels, new_h, new_w))
 
     def backward(self, ctx: Context, grad: np.array = None):
         reshaped_image, old_shape, maxed_shape = ctx.data_for_back
-        grad = np.reshape(grad, maxed_shape)
 
+        grad = np.reshape(grad, maxed_shape)
         mask = (reshaped_image == np.max(reshaped_image, -2, keepdims=True))
 
-        new_grad = np.zeros_like(reshaped_image)
-        for i in range(grad.shape[-1]):
-            grad_col = np.reshape(grad[..., :, i], -1)
-            new_grad[..., :, i][mask[..., :, i]] = grad_col
+        new_grad = self._fill_coll(grad, reshaped_image.shape)
+
+        #print("mask: {}, grad: {}, new_grad: {}".format(mask.shape, grad.shape, new_grad.shape))
+
+        new_grad = np.where(
+            mask,
+            new_grad,
+            0
+        )
 
         return Img2Col.img_2_col_backwards(
             self.kernel_size,
             self.stride,
             old_shape,
-            new_grad,
-            None
+            new_grad
+        )
+
+
+class AvgPool2d(BasePool):
+    def forward(self, ctx: Context, image):
+        """
+        Performs 2d max pool over input tensor
+
+        Args:
+            ctx (Context): Autograd Conext
+            image (np.array):  input image. Allowed shapes:
+                                [N, C, H, W], [C, H, W]
+                                N - batches,
+                                C - channels,
+                                H - height,
+                                W - width
+
+       Returns:
+           tensor (np.array):
+
+        """
+        img_w = image.shape[-1]
+        img_h = image.shape[-2]
+        channels = image.shape[-3]
+
+        # new image width
+        new_w = (img_w - self.kernel_size[0]) // self.stride[0] + 1
+
+        # new image height
+        new_h = (img_h - self.kernel_size[1]) // self.stride[1] + 1
+
+        img_out = Img2Col.img_2_col_forward(
+            self.kernel_size,
+            self.stride,
+            False,
+            image
+        )
+
+        maxed = np.average(img_out, -2)
+        ctx.save_for_back(img_out, image.shape, maxed.shape)
+        return np.reshape(maxed, (-1, channels, new_h, new_w))
+
+    def backward(self, ctx: Context, grad: np.array = None):
+        reshaped_image, old_shape, maxed_shape = ctx.data_for_back
+
+        grad = np.reshape(grad, maxed_shape)
+
+        new_grad = self._fill_coll(grad, reshaped_image.shape) / (self.kernel_size[0] * self.kernel_size[1])
+
+        return Img2Col.img_2_col_backwards(
+            self.kernel_size,
+            self.stride,
+            old_shape,
+            new_grad
         )
