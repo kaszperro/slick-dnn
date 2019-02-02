@@ -14,12 +14,13 @@ iterations = 10
 learning_rate = 0.0001
 
 my_model = Sequential(
-    Conv2d(1, 12, 4),
-    MaxPool2d(2),
-    Conv2d(12, 4, 4),
-    MaxPool2d(2),
+    Conv2d(input_channels=1, output_channels=32, kernel_size=5),
+    ReLU(),
+    MaxPool2d(kernel_size=2, stride=2),
+    Conv2d(input_channels=32, output_channels=64, kernel_size=5),
+    MaxPool2d(kernel_size=2, stride=2),
     Flatten(),
-    Linear(1600, 10),
+    Linear(1024, 10),
     Softmax()
 )
 
@@ -61,11 +62,14 @@ for it in range(iterations):
         model_output = my_model(model_input)
 
         err = loss(good_output, model_output)
+
         optimizer.zero_grad()
         err.backward()
-
         optimizer.step()
-        print(i_b)
+
+        if i_b % 100 == 0:
+            print(i_b)
+
     acc = test_model_acc()
     print("model accuracy: {}".format(acc))
     if acc > 0.97:

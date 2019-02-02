@@ -23,9 +23,10 @@ class Variable:
         self.shape = self.data.shape
 
     def backward(self, grad: np.array = None):
-        if grad is not None:
+        if grad is not None and self.grad is not None:
             self.grad = grad + self.grad
             sum_ax = tuple(range(len(self.grad.shape) - len(self.data.shape)))
+            # if given grad has batches, we need to sum over batches
             self.grad = np.sum(self.grad, sum_ax)
 
         if self.backward_function is not None:

@@ -234,10 +234,7 @@ class MaxPool2d(BasePool):
 
         grad = np.reshape(grad, maxed_shape)
         mask = (reshaped_image == np.max(reshaped_image, -2, keepdims=True))
-
         new_grad = self._fill_coll(grad, reshaped_image.shape)
-
-        #print("mask: {}, grad: {}, new_grad: {}".format(mask.shape, grad.shape, new_grad.shape))
 
         new_grad = np.where(
             mask,
@@ -256,7 +253,7 @@ class MaxPool2d(BasePool):
 class AvgPool2d(BasePool):
     def forward(self, ctx: Context, image):
         """
-        Performs 2d max pool over input tensor
+        Performs 2d average pool over input tensor
 
         Args:
             ctx (Context): Autograd Conext
@@ -288,14 +285,14 @@ class AvgPool2d(BasePool):
             image
         )
 
-        maxed = np.average(img_out, -2)
-        ctx.save_for_back(img_out, image.shape, maxed.shape)
-        return np.reshape(maxed, (-1, channels, new_h, new_w))
+        averaged = np.average(img_out, -2)
+        ctx.save_for_back(img_out, image.shape, averaged.shape)
+        return np.reshape(averaged, (-1, channels, new_h, new_w))
 
     def backward(self, ctx: Context, grad: np.array = None):
-        reshaped_image, old_shape, maxed_shape = ctx.data_for_back
+        reshaped_image, old_shape, averaged_shape = ctx.data_for_back
 
-        grad = np.reshape(grad, maxed_shape)
+        grad = np.reshape(grad, averaged_shape)
 
         new_grad = self._fill_coll(grad, reshaped_image.shape) / (self.kernel_size[0] * self.kernel_size[1])
 
