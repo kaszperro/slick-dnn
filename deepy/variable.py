@@ -1,5 +1,12 @@
 import numpy as np
 
+from deepy.autograd.mathematical import Add
+from deepy.autograd.mathematical import MatMul
+from deepy.autograd.mathematical import Mul
+from deepy.autograd.mathematical import Sub
+from deepy.autograd.tensor_modifications import Reshape
+from deepy.autograd.tensor_modifications import SwapAxes
+
 
 class Variable:
     def __init__(self, from_numpy: np.array, has_grad=True):
@@ -13,18 +20,14 @@ class Variable:
         self.backward_function = None
         self.backward_variables = []
 
-    def __getitem__(self, item):
-        return self.data.__getitem__(item)
-
-    def __setitem__(self, key, value):
-        self.data.__setitem__(key, value)
+        self.shape = self.data.shape
 
     def backward(self, grad: np.array = None):
-        if grad is not None:
-            if len(grad.shape) - 1 == len(self.grad.shape) or grad.shape[0] != self.grad.shape[0]:
-                self.grad += np.sum(grad, 0)
-            else:
-                self.grad += grad
+        if grad is not None and self.grad is not None:
+            self.grad = grad + self.grad
+            sum_ax = tuple(range(len(self.grad.shape) - len(self.data.shape)))
+            # if given grad has batches, we need to sum over batches
+            self.grad = np.sum(self.grad, sum_ax)
 
         if self.backward_function is not None:
             accumulated = self.backward_function(grad)
@@ -36,28 +39,33 @@ class Variable:
                 )
 
     def __str__(self):
-        return "[Variable] " + self.data.__str__()
+        return "<Variable>\n" + self.data.__str__()
+
+    def __getitem__(self, item):
+        from deepy.autograd.tensor_modifications import GetItem
+        return GetItem(item)(self)
+
+    def __setitem__(self, key, value):
+        self.data.__setitem__(key, value)
 
     # mathematical operations
 
     def reshape(self, *new_shape):
-        from deepy.autograd.mathematical import Reshape
-        return Reshape(new_shape)(self)
+        return Reshape(*new_shape)(self)
+
+    def swap_axes(self, axis1, axis2):
+        return SwapAxes(axis1, axis2)(self)
 
     def __add__(self, other):
-        from deepy.autograd.mathematical import Add
         return Add()(self, other)
 
     def __sub__(self, other):
-        from deepy.autograd.mathematical import Sub
         return Sub()(self, other)
 
     def __matmul__(self, other):
-        from deepy.autograd.mathematical import MatMul
         return MatMul()(self, other)
 
     def __mul__(self, other):
-        from deepy.autograd.mathematical import Mul
         return Mul()(self, other)
 
 

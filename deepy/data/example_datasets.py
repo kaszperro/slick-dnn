@@ -13,7 +13,7 @@ class MNISTDataSet(Dataset, ABC):
     @staticmethod
     def _load_mnist(images_path: str, labels_path: str, flatten_input, one_hot_output):
         with open(images_path, 'rb') as f:
-            new_shape = (-1, 28 * 28) if flatten_input else (-1, 28, 28)
+            new_shape = (-1, 28 * 28) if flatten_input else (-1, 1, 28, 28)
             data = np.frombuffer(f.read(), np.uint8, offset=16).reshape(new_shape)
         with open(labels_path, 'rb') as f:
             labels = np.frombuffer(f.read(), np.uint8, offset=8)

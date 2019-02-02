@@ -4,9 +4,47 @@ Deep learning library written in python just for fun.
 
 It uses numpy for computations. API is similar to PyTorch's one.
 
+### Includes:
+
+1. Activation functions:
+    * ArcTan
+    * ReLU
+    * Sigmoid
+    * Softmax
+    * Softplus
+    * Softsign
+    * Tanh
+    
+2. Losses:
+    * MSE
+    * Cross Entropy
+
+3. Optimizers:
+    * SGD
+    * Adam
+
+4. Layers:
+    * Linear
+    * Conv2d
+    * Sequential
+    
+5. Autograd operations:
+    * Reshape
+    * Flatten
+    * SwapAxes
+    * Img2Col
+    * MaxPool2d
+    * AvgPool2d
+    * MatMul
+    * Mul
+    * Sub
+    * Add
+
 ### Examples:
 
 * In examples directory there is a MNIST linear classifier, which scores over 96% accuracy.
+
+* In examples directory there is also MNIST CNN classifier, with over 98% accuracy.
 
 * Sequential model creation:
 ```python
