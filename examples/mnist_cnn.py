@@ -1,3 +1,5 @@
+from time import time
+
 import numpy as np
 
 from deepy.autograd.activations import Softmax, ReLU, Tanh
@@ -11,17 +13,19 @@ from deepy.variable import Variable
 
 batch_size = 64
 iterations = 10
-learning_rate = 0.0001
+learning_rate = 0.0002
 
 my_model = Sequential(
-    Conv2d(input_channels=1, output_channels=10, kernel_size=5),
+    Conv2d(input_channels=1, output_channels=20, kernel_size=5, stride=1),
+    ReLU(),
+    MaxPool2d(2, 2),
+    Conv2d(input_channels=20, output_channels=50, kernel_size=5, stride=1),
+    ReLU(),
     MaxPool2d(kernel_size=2, stride=2),
-    Tanh(),
-    Conv2d(input_channels=10, output_channels=10, kernel_size=5),
-    MaxPool2d(kernel_size=2, stride=2),
-    Tanh(),
     Flatten(),
-    Linear(160, 10),
+    Linear(800, 500),
+    ReLU(),
+    Linear(500, 10),
     Softmax()
 )
 
@@ -34,7 +38,7 @@ test_data_loader = DataLoader(test_dataset)
 train_batches = train_data_loader.get_batch_iterable(batch_size)
 test_batches = test_data_loader.get_batch_iterable(batch_size)
 
-optimizer = Adam(my_model.get_variables_list(), learning_rate)  # SGD(my_model.get_variables_list(), learning_rate)
+optimizer = Adam(my_model.get_variables_list(), learning_rate)
 
 loss = CrossEntropyLoss()
 
@@ -56,7 +60,7 @@ for it in range(iterations):
     if finished:
         break
     train_batches.shuffle()
-
+    start = time()
     for i_b, (batch_in, batch_out) in enumerate(train_batches):
         model_input = Variable(batch_in)
         good_output = Variable(batch_out)
@@ -71,8 +75,9 @@ for it in range(iterations):
         if i_b % 100 == 0:
             print(i_b)
 
+    print("epoch time: {:.2f} seconds".format(time() - start))
     acc = test_model_acc()
     print("model accuracy: {}".format(acc))
-    if acc > 0.97:
+    if acc > 0.99:
         finished = True
         break

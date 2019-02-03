@@ -35,14 +35,14 @@ class Context:
 
 
 class Autograd(ABC):
-
     def apply(self, *variables_list):
         ctx = Context()
 
         input_tensors = [v.data for v in variables_list]
         forward_tensor = self.forward(ctx, *input_tensors)
 
-        output_variable = variable.Variable(forward_tensor)
+        # we set has_grad=False, for performance improvement
+        output_variable = variable.Variable(forward_tensor, has_grad=False)
         output_variable.backward_function = lambda x: self.backward(ctx, x)
         output_variable.backward_variables = [v for v in variables_list]
 

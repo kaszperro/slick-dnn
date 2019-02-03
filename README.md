@@ -42,9 +42,9 @@ It uses numpy for computations. API is similar to PyTorch's one.
 
 ### Examples:
 
-* In examples directory there is a MNIST linear classifier, which scores over 96% accuracy.
+* In examples directory there is a MNIST linear classifier, which scores over 96% accuracy on test set.
 
-* In examples directory there is also MNIST CNN classifier, with over 98% accuracy.
+* In examples directory there is also MNIST CNN classifier, which scored 99.19% accuracy on test set. One epoch of training takes about 290 seconds. It took 7 epochs to reach 99.19% accuracy (~30 min). Time measured on i5-4670k
 
 * Sequential model creation:
 ```python
