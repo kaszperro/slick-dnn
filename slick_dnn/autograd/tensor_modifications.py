@@ -3,7 +3,7 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from deepy.autograd import Autograd, Context
+from slick_dnn.autograd import Autograd, Context
 
 
 class Reshape(Autograd):

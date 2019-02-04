@@ -5,7 +5,7 @@ from urllib import request
 
 import numpy as np
 
-from deepy.data import Dataset
+from slick_dnn.data import Dataset
 
 
 class MNISTDataSet(Dataset, ABC):

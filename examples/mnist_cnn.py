@@ -2,14 +2,14 @@ from time import time
 
 import numpy as np
 
-from deepy.autograd.activations import Softmax, ReLU, Tanh
-from deepy.autograd.losses import CrossEntropyLoss
-from deepy.autograd.optimizers import Adam
-from deepy.autograd.tensor_modifications import MaxPool2d, Flatten
-from deepy.data import DataLoader
-from deepy.data.example_datasets import MNISTTrainDataSet, MNISTTestDataSet
-from deepy.module import Linear, Sequential, Conv2d
-from deepy.variable import Variable
+from slick_dnn.autograd.activations import Softmax, ReLU, Tanh
+from slick_dnn.autograd.losses import CrossEntropyLoss
+from slick_dnn.autograd.optimizers import Adam
+from slick_dnn.autograd.tensor_modifications import MaxPool2d, Flatten
+from slick_dnn.data import DataLoader
+from slick_dnn.data.example_datasets import MNISTTrainDataSet, MNISTTestDataSet
+from slick_dnn.module import Linear, Sequential, Conv2d
+from slick_dnn.variable import Variable
 
 batch_size = 64
 iterations = 10
