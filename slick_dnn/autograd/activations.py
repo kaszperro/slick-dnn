@@ -49,10 +49,12 @@ class Softmax(Autograd):
 
 
 class Softplus(Autograd):
-    """ Applies the softplus function element-wise:
+    """
+    Applies the softplus function element-wise:
 
-    Softplus(x) = ln(1 + e^x)
-    Softplus'(x) = 1 / (1 + e^-x)
+    Softplus(x) = :math:`ln(1 + e^x)`
+
+    Softplus'(x) = :math:`\\frac{1}{1 + e^{-x}}`
     """
 
     def forward(self, ctx: Context, tensor: np.array) -> np.array:
@@ -68,8 +70,9 @@ class Softsign(Autograd):
     """ Applies the softsign function element-wise:
 
 
-    Softsign(x) = 1 / (1 + |x|)
-    Softsign'(x) = 1 / (1 + |x|)^2
+    Softsign(x) = :math:`\\frac{1}{1 + |x|}`
+
+    Softsign'(x) = :math:`\\frac{1}{(1 + |x|)^2}`
     """
 
     def forward(self, ctx: Context, tensor: np.array) -> np.array:

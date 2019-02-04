@@ -4,6 +4,8 @@ from slick_dnn.autograd import Autograd
 
 
 class Add(Autograd):
+    """Adds given tensors"""
+
     def forward(self, ctx, tensor1: np.array, tensor2: np.array):
         return tensor1 + tensor2
 
@@ -12,6 +14,7 @@ class Add(Autograd):
 
 
 class Sub(Autograd):
+    """ Subtracts given tensors: tensor1-tensor2"""
     def forward(self, ctx, tensor1: np.array, tensor2: np.array):
         return tensor1 - tensor2
 
@@ -20,6 +23,8 @@ class Sub(Autograd):
 
 
 class MatMul(Autograd):
+    """Matrix multiplication: tensor1 @ tensor2"""
+
     def forward(self, ctx, tensor1: np.array, tensor2: np.array):
         ctx.save_for_back(tensor1, tensor2)
         return tensor1 @ tensor2
@@ -47,6 +52,7 @@ class MatMul(Autograd):
 
 
 class Mul(Autograd):
+    """Element-wise multiplication"""
     def forward(self, ctx, tensor1: np.array, tensor2: np.array):
         ctx.save_for_back(tensor1, tensor2)
         return tensor1 * tensor2
