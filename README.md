@@ -1,4 +1,4 @@
-# deepy
+# Slick-dnn
 
 Deep learning library written in python just for fun. 
 
@@ -48,8 +48,8 @@ It uses numpy for computations. API is similar to PyTorch's one.
 
 * Sequential model creation:
 ```python
-from deepy.module import Linear, Sequential
-from deepy.autograd.activations import Softmax, ReLU
+from slick_dnn.module import Linear, Sequential
+from slick_dnn.autograd.activations import Softmax, ReLU
 my_model = Sequential(
     Linear(28 * 28, 300),
     ReLU(),
@@ -61,9 +61,9 @@ my_model = Sequential(
 ```
 * Losses:
 ```python
-from deepy.module import Linear
-from deepy.autograd.losses import CrossEntropyLoss, MSELoss
-from deepy.variable import Variable
+from slick_dnn.module import Linear
+from slick_dnn.autograd.losses import CrossEntropyLoss, MSELoss
+from slick_dnn.variable import Variable
 import numpy as np
 
 my_model = Linear(10, 10)
@@ -85,10 +85,10 @@ error.backward()
 * Optimizers:
 
 ```python
-from deepy.module import Linear
-from deepy.autograd.losses import CrossEntropyLoss, MSELoss
-from deepy.variable import Variable
-from deepy.autograd.optimizers import SGD
+from slick_dnn.module import Linear
+from slick_dnn.autograd.losses import CrossEntropyLoss, MSELoss
+from slick_dnn.variable import Variable
+from slick_dnn.autograd.optimizers import SGD
 import numpy as np
 
 
