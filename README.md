@@ -4,6 +4,10 @@ Deep learning library written in python just for fun.
 
 It uses numpy for computations. API is similar to PyTorch's one.
 
+###Docs:
+
+https://slick-dnn.readthedocs.io/en/latest/
+
 ### Includes:
 
 1. Activation functions:
