@@ -15,7 +15,10 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+file_path = os.path.realpath(__file__)
+project_root_path = os.path.dirname(os.path.dirname(os.path.dirname(file_path)))
+print("project: {}".format(project_root_path))
+sys.path.insert(0, project_root_path)
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
