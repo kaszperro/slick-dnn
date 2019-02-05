@@ -21,7 +21,7 @@ sys.setrecursionlimit(1500)
 # -- Project information -----------------------------------------------------
 
 project = 'Slick-dnn'
-copyright = '2019, Kasper Sapała'
+copyright = '2019, Kasper Sapala'
 author = 'Kasper Sapała'
 
 # The short X.Y version
@@ -141,7 +141,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'Slick-dnn.tex', 'Slick-dnn Documentation',
-     'Kasper Sapała', 'manual'),
+     'Kasper Sapala', 'manual'),
 ]
 
 # -- Options for manual page output ------------------------------------------
