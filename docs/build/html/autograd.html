@@ -1,0 +1,895 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Autograd &mdash; Slick-dnn  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to Slick-dnn’s documentation!" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Slick-dnn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Autograd</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-it-works">How it works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-slick_dnn.autograd">Fundamental classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mathematical">Mathematical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#activation-functions">Activation Functions</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Slick-dnn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Autograd</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/autograd.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="autograd">
+<h1>Autograd<a class="headerlink" href="#autograd" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="how-it-works">
+<h2>How it works<a class="headerlink" href="#how-it-works" title="Permalink to this headline">¶</a></h2>
+<p>When you write:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">slick_dnn.variable</span> <span class="k">import</span> <span class="n">Variable</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+</pre></div>
+</div>
+<p>New Variable c is created.
+It’s <code class="code docutils literal notranslate"><span class="pre">c.data</span></code> is numpy array <code class="code docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">2,</span> <span class="pre">2]</span></code>.
+But it also tracks history of creation.</p>
+<p>So it’s <code class="code docutils literal notranslate"><span class="pre">backward_function</span></code> was set to <a class="reference internal" href="#slick_dnn.autograd.mathematical.Add.backward" title="slick_dnn.autograd.mathematical.Add.backward"><code class="xref py py-class docutils literal notranslate"><span class="pre">Add.backward</span></code></a>
+and it’s <code class="code docutils literal notranslate"><span class="pre">backward_variables</span></code> was set to <code class="code docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code></p>
+</div>
+<div class="section" id="module-slick_dnn.autograd">
+<span id="fundamental-classes"></span><h2>Fundamental classes<a class="headerlink" href="#module-slick_dnn.autograd" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="slick_dnn.autograd.Autograd">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.</code><code class="descname">Autograd</code><a class="reference internal" href="_modules/slick_dnn/autograd.html#Autograd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.Autograd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Autograd is a base class for all operations made on Variables.</p>
+<dl class="method">
+<dt id="slick_dnn.autograd.Autograd.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>*variables_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd.html#Autograd.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.Autograd.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>For convenience. One can use all
+Autograd objects by simply calling them
+instead of using <a class="reference internal" href="#slick_dnn.autograd.Autograd.apply" title="slick_dnn.autograd.Autograd.apply"><code class="xref py py-class docutils literal notranslate"><span class="pre">apply</span></code></a> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>variables_list</strong> – same as in <a class="reference internal" href="#slick_dnn.autograd.Autograd.forward" title="slick_dnn.autograd.Autograd.forward"><code class="xref py py-class docutils literal notranslate"><span class="pre">forward</span></code></a> method</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">what <a class="reference internal" href="#slick_dnn.autograd.Autograd.apply" title="slick_dnn.autograd.Autograd.apply"><code class="xref py py-class docutils literal notranslate"><span class="pre">apply</span></code></a> returns</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.Autograd.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>*variables_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd.html#Autograd.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.Autograd.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actual creation of new Variable.
+It calls overwritten <a class="reference internal" href="#slick_dnn.autograd.Autograd.forward" title="slick_dnn.autograd.Autograd.forward"><code class="xref py py-class docutils literal notranslate"><span class="pre">forward</span></code></a> method, creates new <a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a>
+(same context is used in forward an backward pass)
+and sets <code class="code docutils literal notranslate"><span class="pre">backward_function</span></code> and <code class="code docutils literal notranslate"><span class="pre">backward_variables</span></code>
+for the new Variable</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>variables_list</strong> – any variables, backward function will have to calculate gradients w.r.t all input variables</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">one variable, the one with tracked history and calculated data</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.Autograd.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd.html#Autograd.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.Autograd.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.Autograd.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>*tensors_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd.html#Autograd.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.Autograd.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.Context">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.</code><code class="descname">Context</code><a class="reference internal" href="_modules/slick_dnn/autograd.html#Context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.Context" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is for storing information for back propagation.
+Autograd uses this class instead of using self to allow constructions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">relu</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">()</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">relu</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">relu</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>That means, that you can use one instance of Autograd class
+to all of your operations. Without it, the above example would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">relu1</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">()</span>
+<span class="n">relu2</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">()</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">relu1</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">relu2</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="slick_dnn.autograd.Context.save_for_back">
+<code class="descname">save_for_back</code><span class="sig-paren">(</span><em>*data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd.html#Context.save_for_back"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.Context.save_for_back" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves given data for back propagation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Any</em>) – Iterable of any data to save.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="mathematical">
+<h2>Mathematical<a class="headerlink" href="#mathematical" title="Permalink to this headline">¶</a></h2>
+<p>All mathematical operations available for Variables</p>
+<span class="target" id="module-slick_dnn.autograd.mathematical"></span><dl class="class">
+<dt id="slick_dnn.autograd.mathematical.Add">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.mathematical.</code><code class="descname">Add</code><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds given tensors</p>
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.Add.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx</em>, <em>grad</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Add.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Add.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.Add.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx</em>, <em>tensor1: numpy.array</em>, <em>tensor2: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Add.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Add.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.mathematical.MatMul">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.mathematical.</code><code class="descname">MatMul</code><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#MatMul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.MatMul" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix multiplication: tensor1 &#64; tensor2</p>
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.MatMul.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx</em>, <em>grad: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#MatMul.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.MatMul.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.MatMul.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx</em>, <em>tensor1: numpy.array</em>, <em>tensor2: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#MatMul.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.MatMul.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.mathematical.Mul">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.mathematical.</code><code class="descname">Mul</code><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Mul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Mul" title="Permalink to this definition">¶</a></dt>
+<dd><p>Element-wise multiplication</p>
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.Mul.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx</em>, <em>grad: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Mul.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Mul.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.Mul.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx</em>, <em>tensor1: numpy.array</em>, <em>tensor2: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Mul.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Mul.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.mathematical.Sub">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.mathematical.</code><code class="descname">Sub</code><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Sub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subtracts given tensors: tensor1-tensor2</p>
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.Sub.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx</em>, <em>grad</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Sub.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Sub.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.mathematical.Sub.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx</em>, <em>tensor1: numpy.array</em>, <em>tensor2: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/mathematical.html#Sub.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.mathematical.Sub.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="activation-functions">
+<h2>Activation Functions<a class="headerlink" href="#activation-functions" title="Permalink to this headline">¶</a></h2>
+<p>All activation functions available.</p>
+<span class="target" id="module-slick_dnn.autograd.activations"></span><dl class="class">
+<dt id="slick_dnn.autograd.activations.ArcTan">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.activations.</code><code class="descname">ArcTan</code><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#ArcTan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.ArcTan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the arctan function element-wise.</p>
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.ArcTan.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#ArcTan.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.ArcTan.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.ArcTan.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>tensor: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#ArcTan.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.ArcTan.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.activations.ReLU">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.activations.</code><code class="descname">ReLU</code><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#ReLU"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.ReLU" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="slick_dnn.autograd.activations.ReLU.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#ReLU.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.ReLU.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.ReLU.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>tensor: numpy.array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#ReLU.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.ReLU.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.activations.Sigmoid">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.activations.</code><code class="descname">Sigmoid</code><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Sigmoid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Sigmoid" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="slick_dnn.autograd.activations.Sigmoid.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Sigmoid.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Sigmoid.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Sigmoid.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>tensor: numpy.array</em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Sigmoid.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Sigmoid.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.activations.Softmax">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.activations.</code><code class="descname">Softmax</code><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softmax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softmax" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="slick_dnn.autograd.activations.Softmax.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softmax.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softmax.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Softmax.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>x: numpy.array</em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softmax.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softmax.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.activations.Softplus">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.activations.</code><code class="descname">Softplus</code><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softplus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softplus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the softplus function element-wise:</p>
+<p>Softplus(x) = <span class="math notranslate nohighlight">\(ln(1 + e^x)\)</span></p>
+<p>Softplus’(x) = <span class="math notranslate nohighlight">\(\frac{1}{1 + e^{-x}}\)</span></p>
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Softplus.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softplus.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softplus.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Softplus.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>tensor: numpy.array</em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softplus.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softplus.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.activations.Softsign">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.activations.</code><code class="descname">Softsign</code><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softsign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softsign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the softsign function element-wise:</p>
+<p>Softsign(x) = <span class="math notranslate nohighlight">\(\frac{1}{1 + |x|}\)</span></p>
+<p>Softsign’(x) = <span class="math notranslate nohighlight">\(\frac{1}{(1 + |x|)^2}\)</span></p>
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Softsign.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softsign.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softsign.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Softsign.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>tensor: numpy.array</em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Softsign.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Softsign.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="slick_dnn.autograd.activations.Tanh">
+<em class="property">class </em><code class="descclassname">slick_dnn.autograd.activations.</code><code class="descname">Tanh</code><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Tanh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Tanh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the tanh function element-wise.</p>
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Tanh.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>grad: numpy.array = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Tanh.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Tanh.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backward pass. Each Autograd Object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Same context as in forward pass</li>
+<li><strong>grad</strong> – gradient</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">gradient w.r.t all inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="slick_dnn.autograd.activations.Tanh.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>ctx: slick_dnn.autograd.Context</em>, <em>tensor: numpy.array</em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="reference internal" href="_modules/slick_dnn/autograd/activations.html#Tanh.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#slick_dnn.autograd.activations.Tanh.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass of variable. Each Autograd object must implement it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> (<a class="reference internal" href="#slick_dnn.autograd.Context" title="slick_dnn.autograd.Context"><em>Context</em></a>) – Context, classes can save information in them</li>
+<li><strong>tensors_list</strong> – any list of input tensors</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one new tensor</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to Slick-dnn’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Kasper Sapała
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
