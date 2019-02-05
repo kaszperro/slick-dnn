@@ -5,7 +5,6 @@ from slick_dnn.autograd import Autograd
 
 class Add(Autograd):
     """Adds given tensors"""
-
     def forward(self, ctx, tensor1: np.array, tensor2: np.array):
         return tensor1 + tensor2
 
