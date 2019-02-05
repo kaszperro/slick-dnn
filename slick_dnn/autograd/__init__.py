@@ -84,7 +84,6 @@ class Autograd(ABC):
     @abstractmethod
     def backward(self, ctx: Context, grad: np.array = None):
         """
-
         Backward pass. Each Autograd Object must implement it.
 
         :param ctx: Same context as in forward pass
