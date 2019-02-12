@@ -4,7 +4,7 @@ from slick_dnn.autograd.mathematical import Add
 from slick_dnn.autograd.mathematical import MatMul
 from slick_dnn.autograd.mathematical import Mul
 from slick_dnn.autograd.mathematical import Sub
-from slick_dnn.autograd.tensor_modifications import Reshape
+from slick_dnn.autograd.tensor_modifications import Reshape, GetItem
 from slick_dnn.autograd.tensor_modifications import SwapAxes
 
 
@@ -38,11 +38,13 @@ class Variable:
                     else accumulated
                 )
 
+    def load_data_in_place(self, other_data):
+        self.data = np.array(other_data)
+
     def __str__(self):
         return "<Variable>\n" + self.data.__str__()
 
     def __getitem__(self, item):
-        from deepy.autograd.tensor_modifications import GetItem
         return GetItem(item)(self)
 
     def __setitem__(self, key, value):

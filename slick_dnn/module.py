@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 
 import numpy as np
 
@@ -9,16 +10,27 @@ from slick_dnn.variable import Variable
 
 class Module(ABC):
     def __init__(self):
-        self.variables_list = []
+        self.variables_dict = OrderedDict([])
 
-    def register_variable(self, var: Variable):
-        self.variables_list.append(var)
+    def register_variable(self, var_name: str, var: Variable):
+        self.variables_dict.update({var_name: var})
 
     def register_variables(self, *var_iterable):
-        self.variables_list.extend(var_iterable)
+        for (var_name, var) in var_iterable:
+            self.register_variable(var_name, var)
 
-    def get_variables_list(self) -> list:
-        return self.variables_list
+    def update_state_dict(self, other_state_dict):
+        self.variables_dict.update(other_state_dict)
+
+    def get_variables_list(self)->list:
+        return list(self.variables_dict.values())
+
+    def get_state_dict(self) -> OrderedDict:
+        return self.variables_dict
+
+    def load_state_dict(self, state_dict: OrderedDict):
+        for key, val in state_dict.items():
+            self.variables_dict[key].load_data_in_place(val)
 
     @abstractmethod
     def forward(self, *input_variables) -> Variable:
@@ -33,11 +45,18 @@ class Sequential(Module):
         super().__init__()
 
         self.sequences_list = list(sequences)
-        for seq in self.sequences_list:
+        for i_seq, seq in enumerate(self.sequences_list):
             try:
-                var_list = seq.get_variables_list()
+                seq_state_dict = seq.get_state_dict()
 
-                self.register_variables(*var_list)
+                updated_names = [
+                    (
+                        'sequential.{}.{}'.format(i_seq, k), v
+                    )
+                    for k, v in seq_state_dict.items()
+                ]
+
+                self.register_variables(updated_names)
             except AttributeError:
                 pass
 
@@ -58,7 +77,7 @@ class Linear(Module):
         self.weights = Variable(np.random.normal(0, 0.05, (self.num_input, self.num_output)))
         self.biases = variable.zeros(self.num_output, np.float32)
 
-        self.register_variables(self.weights, self.biases)
+        self.register_variables(('weight', self.weights), ('bias', self.biases))
 
     def forward(self, in_var):
         return (in_var @ self.weights) + self.biases
@@ -95,9 +114,9 @@ class Conv2d(Module):
         self.add_bias = add_bias
         if self.add_bias:
             self.biases = variable.zeros(output_channels)
-            self.register_variables(self.weights, self.biases)
+            self.register_variables(('weight', self.weights), ('bias', self.biases))
         else:
-            self.register_variables(self.weights)
+            self.register_variables(('weight', self.weights))
 
         self.img2col = Img2Col(self.kernel_size, self.stride)
 
