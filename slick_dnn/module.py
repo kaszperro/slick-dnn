@@ -16,13 +16,13 @@ class Module(ABC):
         self.variables_dict.update({var_name: var})
 
     def register_variables(self, *var_iterable):
-        for (var_name, var) in var_iterable:
+        for var_name, var in var_iterable:
             self.register_variable(var_name, var)
 
     def update_state_dict(self, other_state_dict):
         self.variables_dict.update(other_state_dict)
 
-    def get_variables_list(self)->list:
+    def get_variables_list(self) -> list:
         return list(self.variables_dict.values())
 
     def get_state_dict(self) -> OrderedDict:
@@ -45,7 +45,8 @@ class Sequential(Module):
         super().__init__()
 
         self.sequences_list = list(sequences)
-        for i_seq, seq in enumerate(self.sequences_list):
+        i_seq = 0
+        for seq in self.sequences_list:
             try:
                 seq_state_dict = seq.get_state_dict()
 
@@ -56,7 +57,8 @@ class Sequential(Module):
                     for k, v in seq_state_dict.items()
                 ]
 
-                self.register_variables(updated_names)
+                self.register_variables(*updated_names)
+                i_seq = i_seq + 1
             except AttributeError:
                 pass
 
