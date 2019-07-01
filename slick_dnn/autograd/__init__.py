@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-import numpy as np
-
 from slick_dnn import variable
 
 
@@ -35,9 +33,7 @@ class Context:
         :param data: Iterable of any data to save.
         :type data: Any
         """
-        if len(data) == 1:
-            data = data[0]
-        self.data_for_back = data
+        self.data_for_back = tuple(data)
 
 
 class Autograd(ABC):
@@ -58,18 +54,17 @@ class Autograd(ABC):
         """
         ctx = Context()
 
-        input_tensors = [v.data for v in variables_list]
-        forward_tensor = self.forward(ctx, *input_tensors)
+        forward_tensor = self.forward(ctx, *map(lambda v: v.data, variables_list))
 
         # we set has_grad=False, for performance improvement
         output_variable = variable.Variable(forward_tensor, has_grad=False)
         output_variable.backward_function = lambda x: self.backward(ctx, x)
-        output_variable.backward_variables = [v for v in variables_list]
+        output_variable.backward_variables = list(variables_list)
 
         return output_variable
 
     @abstractmethod
-    def forward(self, ctx: Context, *tensors_list):
+    def forward(self, ctx, *tensors_list):
         """
         Forward pass of variable. Each Autograd object must implement it.
 
@@ -82,7 +77,7 @@ class Autograd(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def backward(self, ctx: Context, grad: np.array = None):
+    def backward(self, ctx, grad):
         """
         Backward pass. Each Autograd Object must implement it.
 

@@ -76,8 +76,8 @@ class Linear(Module):
         self.num_input = num_input
         self.num_output = num_output
 
-        self.weights = Variable(np.random.normal(0, 0.05, (self.num_input, self.num_output)))
-        self.biases = variable.zeros(self.num_output, np.float32)
+        self.weights = Variable(np.random.normal(0, 0.05, (self.num_input, self.num_output)), True)
+        self.biases = variable.zeros(self.num_output, np.float32, True)
 
         self.register_variables(('weight', self.weights), ('bias', self.biases))
 
@@ -110,12 +110,13 @@ class Conv2d(Module):
                 self.input_channels,
                 self.kernel_size[0],
                 self.kernel_size[1]
-            ))
+            )),
+            True
         )
 
         self.add_bias = add_bias
         if self.add_bias:
-            self.biases = variable.zeros(output_channels)
+            self.biases = variable.zeros(output_channels, np.float32, True)
             self.register_variables(('weight', self.weights), ('bias', self.biases))
         else:
             self.register_variables(('weight', self.weights))

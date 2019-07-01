@@ -10,12 +10,12 @@ class Reshape(Autograd):
     def __init__(self, *new_shape):
         self.new_shape = new_shape
 
-    def forward(self, ctx: Context, tensor: np.array):
+    def forward(self, ctx, tensor):
         ctx.save_for_back(tensor.shape)
         return np.reshape(tensor, self.new_shape)
 
-    def backward(self, ctx: Context, grad: np.array):
-        old_shape = ctx.data_for_back
+    def backward(self, ctx, grad):
+        old_shape, = ctx.data_for_back
 
         # bach grad
         if len(self.new_shape) + 1 == len(grad.shape):
@@ -25,12 +25,12 @@ class Reshape(Autograd):
 
 
 class Flatten(Autograd):
-    def forward(self, ctx: Context, tensor):
+    def forward(self, ctx, tensor):
         ctx.save_for_back(tensor.shape)
         return np.reshape(tensor, (tensor.shape[0], -1))
 
-    def backward(self, ctx: Context, grad: np.array = None):
-        old_shape = ctx.data_for_back
+    def backward(self, ctx, grad):
+        old_shape, = ctx.data_for_back
         return np.reshape(grad, old_shape)
 
 
@@ -39,10 +39,10 @@ class SwapAxes(Autograd):
         self.axis1 = axis1
         self.axis2 = axis2
 
-    def forward(self, ctx: Context, tensor):
+    def forward(self, ctx, tensor):
         return np.swapaxes(tensor, self.axis1, self.axis2)
 
-    def backward(self, ctx: Context, grad: np.array = None):
+    def backward(self, ctx: Context, grad):
         return np.swapaxes(grad, self.axis1, self.axis2)
 
 
@@ -50,12 +50,12 @@ class GetItem(Autograd):
     def __init__(self, item):
         self.item = item
 
-    def forward(self, ctx: Context, tensor):
+    def forward(self, ctx, tensor):
         ctx.save_for_back(tensor.shape)
         return tensor[self.item]
 
-    def backward(self, ctx: Context, grad: np.array):
-        old_shape = ctx.data_for_back
+    def backward(self, ctx, grad):
+        old_shape, = ctx.data_for_back
         new_grad = np.zeros(old_shape, dtype=np.float32)
         new_grad[self.item] = grad
         return new_grad
@@ -159,7 +159,7 @@ class Img2Col(Autograd):
         )
 
     def backward(self, ctx: Context, grad: np.array = None):
-        old_shape = ctx.data_for_back
+        old_shape, = ctx.data_for_back
 
         return self.img_2_col_backwards(
             self.kernel_size,

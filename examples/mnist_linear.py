@@ -2,10 +2,10 @@ import numpy as np
 
 from slick_dnn.autograd.activations import Softmax, ReLU
 from slick_dnn.autograd.losses import CrossEntropyLoss
-from slick_dnn.autograd.optimizers import Adam
 from slick_dnn.data import DataLoader
 from slick_dnn.data.example_datasets import MNISTTrainDataSet, MNISTTestDataSet
 from slick_dnn.module import Linear, Sequential
+from slick_dnn.optimizers import Adam
 from slick_dnn.variable import Variable
 
 batch_size = 64

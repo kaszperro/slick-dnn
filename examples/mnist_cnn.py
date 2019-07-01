@@ -2,9 +2,9 @@ from time import time
 
 import numpy as np
 
-from slick_dnn.autograd.activations import Softmax, ReLU, Tanh
+from slick_dnn.autograd.activations import Softmax, ReLU
 from slick_dnn.autograd.losses import CrossEntropyLoss
-from slick_dnn.autograd.optimizers import Adam
+from slick_dnn.optimizers import Adam
 from slick_dnn.autograd.tensor_modifications import MaxPool2d, Flatten
 from slick_dnn.data import DataLoader
 from slick_dnn.data.example_datasets import MNISTTrainDataSet, MNISTTestDataSet

@@ -9,7 +9,7 @@ from slick_dnn.autograd.tensor_modifications import SwapAxes
 
 
 class Variable:
-    def __init__(self, from_numpy: np.array, has_grad=True):
+    def __init__(self, from_numpy: np.array, has_grad=False):
         self.data = np.array(from_numpy)
 
         self.has_grad = has_grad
@@ -22,8 +22,8 @@ class Variable:
 
         self.shape = self.data.shape
 
-    def backward(self, grad: np.array = None):
-        if grad is not None and self.grad is not None:
+    def backward(self, grad=np.array([1])):
+        if self.has_grad:
             self.grad = grad + self.grad
             sum_ax = tuple(range(len(self.grad.shape) - len(self.data.shape)))
             # if given grad has batches, we need to sum over batches
@@ -31,12 +31,10 @@ class Variable:
 
         if self.backward_function is not None:
             accumulated = self.backward_function(grad)
-            for i, bv in enumerate(self.backward_variables):
-                bv.backward(
-                    accumulated[i]
-                    if len(self.backward_variables) > 1
-                    else accumulated
-                )
+            if len(self.backward_variables) == 1:
+                accumulated = accumulated,
+            for bv, ac in zip(self.backward_variables, accumulated):
+                bv.backward(ac)
 
     def load_data_in_place(self, other_data):
         self.data = np.array(other_data)
@@ -71,9 +69,9 @@ class Variable:
         return Mul()(self, other)
 
 
-def zeros(shape, dtype=np.float32) -> Variable:
-    return Variable(np.zeros(shape, dtype=dtype))
+def zeros(shape, dtype=np.float32, has_grad=False) -> Variable:
+    return Variable(np.zeros(shape, dtype=dtype), has_grad)
 
 
-def ones(shape, dtype=np.float32) -> Variable:
-    return Variable(np.ones(shape, dtype=dtype))
+def ones(shape, dtype=np.float32, has_grad=False) -> Variable:
+    return Variable(np.ones(shape, dtype=dtype), has_grad)

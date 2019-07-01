@@ -7,6 +7,6 @@ setup(
     url='',
     license='',
     author='Kasper',
-    author_email='',
+    author_email='kasper.sapala@gmail.com',
     description=''
 )
